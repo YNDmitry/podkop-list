@@ -1,0 +1,9 @@
+# Файл для пользовательских источников (опциональный)
+# Скрипт уже загружает все файлы из:
+# https://raw.githubusercontent.com/v2fly/domain-list-community/master/data/
+#
+# Формат для добавления своих источников:
+# URL|ИмяВыхода
+# 
+# Пример:
+# https://example.com/domains.txt|my-domains

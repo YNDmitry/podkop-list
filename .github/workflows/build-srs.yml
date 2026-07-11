@@ -1,0 +1,46 @@
+name: Build SRS Ruleset
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install sing-box
+        run: |
+          DOWNLOAD_URL=$(curl -s https://api.github.com/repos/SagerNet/sing-box/releases/latest | jq -r '.assets[] | select(.name | contains("linux-amd64")) | .browser_download_url' | grep -v ".sha256" | head -1)
+          if [ -z "$DOWNLOAD_URL" ]; then
+            echo "Failed to get download URL"
+            exit 1
+          fi
+          wget -q "$DOWNLOAD_URL" -O sing-box.tar.gz
+          tar xzf sing-box.tar.gz
+          find . -name "sing-box" -type f -executable -exec sudo mv {} /usr/local/bin/ \;
+          sing-box version
+
+      - name: Build SRS files
+        run: python3 build_srs.py
+
+      - name: Commit and push SRS files
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add SRS/*.srs
+          git commit -m "Update SRS files $(date +%Y-%m-%d)" --allow-empty
+          git push origin main
+        continue-on-error: true
