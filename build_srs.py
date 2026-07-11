@@ -15,6 +15,7 @@ DATA_PATH = os.path.join(REPO_PATH, "data")
 DEFAULT_CONFIG = 'sources.txt'
 DEFAULT_SRS_DIR = 'SRS'
 DEFAULT_VERSION = 3
+COMBINED_SRS_NAME = 'all'
 
 
 def load_sources(config_file=DEFAULT_CONFIG):
@@ -173,6 +174,7 @@ def main():
     print(f"Найдено {len(sources)} источников\n")
     
     success_count = failed_count = 0
+    all_domains, all_full_domains, all_regex_patterns = [], [], []
     
     for source in sources:
         print(f"Обработка: {source['name']}")
@@ -184,10 +186,20 @@ def main():
             full_domains.extend(inc_f)
             regex_patterns.extend(inc_r)
         
+        all_domains.extend(domains)
+        all_full_domains.extend(full_domains)
+        all_regex_patterns.extend(regex_patterns)
+        
         if build_srs_from_domains(domains, full_domains, regex_patterns, source['name']):
             success_count += 1
         else:
             failed_count += 1
+    
+    print(f"\nСборка общего файла: {COMBINED_SRS_NAME}.srs")
+    if build_srs_from_domains(all_domains, all_full_domains, all_regex_patterns, COMBINED_SRS_NAME):
+        success_count += 1
+    else:
+        failed_count += 1
     
     print(f"\nРезультат: ✓ {success_count}, ✗ {failed_count}")
     return 0 if failed_count == 0 else 1
